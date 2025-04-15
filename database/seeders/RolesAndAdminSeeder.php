@@ -11,14 +11,12 @@ class RolesAndAdminSeeder extends Seeder
 {
     public function run()
     {
-        Role::firstOrCreate(['name' => 'admin']);
-        Role::firstOrCreate(['name' => 'user']);
+         // Asegúrate de usar el mismo guard que tu autenticación JWT
+         $guard = 'api';
 
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'password' => Hash::make('admin123')]
-        );
-
-        $admin->assignRole('admin');
+         // Crear roles
+         Role::firstOrCreate(['name' => 'admin', 'guard_name' => $guard]);
+         Role::firstOrCreate(['name' => 'user', 'guard_name' => $guard]);
     }
 }
+
