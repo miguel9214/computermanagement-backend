@@ -16,7 +16,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed', // usa password_confirmation
+            'password' => 'required|string|min:6|confirmed', // password_confirmation
         ]);
 
         if ($validator->fails()) {
@@ -29,11 +29,16 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // ✅ Asignar rol por defecto
+        $user->assignRole('user'); // asegúrate de que el rol 'user' exista
+
+        // Generar token JWT
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => 'Usuario registrado correctamente',
             'user'    => $user,
+            'role'    => $user->getRoleNames()->first(), // Opcional: para mostrar el rol
             'token'   => $token,
         ], 201);
     }

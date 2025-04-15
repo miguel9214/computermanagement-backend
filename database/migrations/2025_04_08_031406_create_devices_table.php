@@ -13,9 +13,6 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('dependency_id')->constrained('dependencies')->onDelete('cascade');
-            $table->foreignId('printer_id')->nullable()->constrained('printers')->onDelete('set null');
-            $table->foreignId('scanner_id')->nullable()->constrained('scanners')->onDelete('set null');
             $table->string('device_name');
             $table->string('property')->nullable();
             $table->string('status')->nullable();
@@ -35,6 +32,14 @@ return new class extends Migration
             $table->string('anydesk')->nullable();
             $table->string('operator')->nullable();
             $table->text('notes')->nullable();
+            $table->foreignId('dependency_id')->constrained('dependencies')->onDelete('cascade');
+            $table->foreignId('printer_id')->nullable()->constrained('printers')->onDelete('set null');
+            $table->foreignId('scanner_id')->nullable()->constrained('scanners')->onDelete('set null');
+            $table->unsignedBigInteger('created_by_user')->nullable();
+            $table->unsignedBigInteger('updated_by_user')->nullable();
+            $table->foreign('created_by_user')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('updated_by_user')->references('id')->on('users')->onDelete('restrict')->onUpdate('cascade');
+
             $table->timestamps();
         });
     }
