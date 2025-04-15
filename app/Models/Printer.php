@@ -9,6 +9,14 @@ class Printer extends Model
 {
     use HasFactory;
 
+
+    protected $fillable = [
+        'name',
+        'brand',
+        'connection_type',
+        'model'
+    ];
+
     public function devices() {
         return $this->hasMany(Device::class);
     }
