@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Device;
+use App\Models\Dependency;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DeviceController extends Controller
 {
     public function index()
     {
-        return Device::with(['dependency', 'printer', 'scanner'])->get();
+        $devices = Device::with(['dependency', 'printer', 'scanner'])->get();
+
+        return response()->json([
+            'message' => 'Devices retrieved successfully',
+            'data' => $devices
+        ], 200);
     }
 
     public function store(Request $request)
@@ -39,12 +46,27 @@ class DeviceController extends Controller
             'notes'             => 'nullable|string|max:1000',
         ]);
 
-        return Device::create($request->all());
+        $data = $request->all();
+        $data['created_by_user'] = Auth::id();
+        $data['updated_by_user'] = Auth::id();
+
+        $device = Device::create($data);
+        $device->load(['dependency', 'printer', 'scanner']);
+
+        return response()->json([
+            'message' => 'Device created successfully',
+            'data' => $device
+        ], 201);
     }
 
     public function show(Device $device)
     {
-        return $device->load(['dependency', 'printer', 'scanner']);
+        $device->load(['dependency', 'printer', 'scanner']);
+
+        return response()->json([
+            'message' => 'Device retrieved successfully',
+            'data' => $device
+        ], 200);
     }
 
     public function update(Request $request, Device $device)
@@ -74,13 +96,35 @@ class DeviceController extends Controller
             'notes'             => 'nullable|string|max:1000',
         ]);
 
-        $device->update($request->all());
-        return $device->load(['dependency', 'printer', 'scanner']);
+        $data = $request->all();
+        $data['updated_by_user'] = Auth::id();
+
+        $device->update($data);
+        $device->load(['dependency', 'printer', 'scanner']);
+
+        return response()->json([
+            'message' => 'Device updated successfully',
+            'data' => $device
+        ], 200);
     }
 
     public function destroy(Device $device)
     {
         $device->delete();
-        return response()->json(['message' => 'Deleted successfully']);
+
+        return response()->json([
+            'message' => 'Device deleted successfully'
+        ], 200);
+    }
+
+    // Método adicional para obtener dependencias para el select
+    public function getDependencies()
+    {
+        $dependencies = Dependency::select('id', 'name')->get();
+
+        return response()->json([
+            'message' => 'Dependencies retrieved successfully',
+            'data' => $dependencies
+        ], 200);
     }
 }

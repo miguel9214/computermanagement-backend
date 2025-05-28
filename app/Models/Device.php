@@ -32,6 +32,13 @@ class Device extends Model
         'anydesk',
         'operator',
         'notes',
+        'created_by_user',
+        'updated_by_user'
+    ];
+
+    protected $casts = [
+        'ram' => 'integer',
+        'hdd' => 'integer',
     ];
 
     public function dependency()
@@ -47,5 +54,15 @@ class Device extends Model
     public function scanner()
     {
         return $this->belongsTo(Scanner::class);
+    }
+
+    public function createdByUser()
+    {
+        return $this->belongsTo(User::class, 'created_by_user');
+    }
+
+    public function updatedByUser()
+    {
+        return $this->belongsTo(User::class, 'updated_by_user');
     }
 }
