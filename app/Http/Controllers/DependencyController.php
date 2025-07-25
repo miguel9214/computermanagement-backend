@@ -4,83 +4,129 @@ namespace App\Http\Controllers;
 
 use App\Models\Dependency;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Exception;
 
 class DependencyController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Listado paginado de dependencias con filtro opcional.
+     */
+    public function index(Request $request): JsonResponse
     {
-        $search = $request->input('search');
-        $itemsPerPage = $request->input('itemsPerPage', 5);
+        try {
+            $perPage = (int) $request->input('per_page', 10);
+            $search  = $request->input('search', '');
 
-        $query = DB::table("dependencies as d")->select(
-            "d.id",
-            "d.name"
-        );
+            // Construye la consulta
+            $query = Dependency::select(['id', 'name']);
+            if ($search !== '') {
+                $query->where('name', 'like', "%{$search}%");
+            }
 
-        if ($search) {
-            $query->where('d.name', 'like', '%' . $search . '%');
+            $paginated = $query->paginate($perPage);
+
+            return response()->json([
+                'message' => 'Dependencies retrieved successfully',
+                'data'    => $paginated,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving dependencies',
+                'errors'  => [$e->getMessage()],
+            ], 500);
         }
-
-        $dependenciesList = $query->paginate($itemsPerPage);
-
-        // Cambio aquí: devolver 'data' en lugar de 'dependencies'
-        return response()->json([
-            'message' => 'Dependencies List',
-            'data' => $dependenciesList
-        ], 200);
     }
 
-    public function store(Request $request)
+    /**
+     * Crea una nueva dependencia.
+     */
+    public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
 
-        // Agregar los campos de auditoría
-        $data = $request->only('name');
-        $data['created_by_user'] = Auth::id();
-        $data['updated_by_user'] = Auth::id();
+            $validated['created_by_user'] = Auth::id();
+            $validated['updated_by_user'] = Auth::id();
 
-        $dependency = Dependency::create($data);
+            $dependency = Dependency::create($validated);
 
-        return response()->json([
-            'message' => 'Dependency created successfully',
-            'data' => $dependency
-        ], 201);
+            return response()->json([
+                'message' => 'Dependency created successfully',
+                'data'    => $dependency,
+            ], 201);
+        } catch (Exception $e) {
+            // Si viene de validación, Laravel ya retorna JSON 422
+            $status = $e instanceof \Illuminate\Validation\ValidationException ? 422 : 500;
+            return response()->json([
+                'message' => 'Error creating dependency',
+                'errors'  => [$e->getMessage()],
+            ], $status);
+        }
     }
 
-    public function show(Dependency $dependency)
+    /**
+     * Muestra una dependencia.
+     */
+    public function show(Dependency $dependency): JsonResponse
     {
-        return response()->json([
-            'message' => 'Dependency found',
-            'data' => $dependency
-        ], 200);
+        try {
+            return response()->json([
+                'message' => 'Dependency retrieved successfully',
+                'data'    => $dependency,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving dependency',
+                'errors'  => [$e->getMessage()],
+            ], 500);
+        }
     }
 
-    public function update(Request $request, Dependency $dependency)
+    /**
+     * Actualiza una dependencia.
+     */
+    public function update(Request $request, Dependency $dependency): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
 
-        $data = $request->only('name');
-        $data['updated_by_user'] = Auth::id();
+            $validated['updated_by_user'] = Auth::id();
+            $dependency->update($validated);
 
-        $dependency->update($data);
-
-        return response()->json([
-            'message' => 'Dependency updated successfully',
-            'data' => $dependency
-        ], 200);
+            return response()->json([
+                'message' => 'Dependency updated successfully',
+                'data'    => $dependency,
+            ], 200);
+        } catch (Exception $e) {
+            $status = $e instanceof \Illuminate\Validation\ValidationException ? 422 : 500;
+            return response()->json([
+                'message' => 'Error updating dependency',
+                'errors'  => [$e->getMessage()],
+            ], $status);
+        }
     }
 
-    public function destroy(Dependency $dependency)
+    /**
+     * Elimina una dependencia.
+     */
+    public function destroy(Dependency $dependency): JsonResponse
     {
-        $dependency->delete();
-        return response()->json([
-            'message' => 'Dependency deleted successfully'
-        ], 200);
+        try {
+            $dependency->delete();
+            return response()->json([
+                'message' => 'Dependency deleted successfully',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Error deleting dependency',
+                'errors'  => [$e->getMessage()],
+            ], 500);
+        }
     }
 }

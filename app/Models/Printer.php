@@ -13,8 +13,12 @@ class Printer extends Model
     protected $fillable = [
         'name',
         'brand',
-        'connection_type',
-        'model'
+        'model',
+        'connection',
+        'ip',
+        'mac',
+        'created_by_user',
+        'updated_by_user',
     ];
 
     public function devices() {
