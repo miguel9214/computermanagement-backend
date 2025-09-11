@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173','http://192.168.1.93:5173'],
+    'allowed_origins' => ['http://localhost:5173','http://192.168.1.93:5173', 'https://h.gpsmonitoreorada.site'],
 
     'allowed_origins_patterns' => [],
 
