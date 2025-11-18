@@ -65,4 +65,14 @@ class Device extends Model
     {
         return $this->belongsTo(User::class, 'updated_by_user');
     }
+
+    public function maintenances()
+    {
+        return $this->morphMany(Maintenance::class, 'maintainable');
+    }
+
+    public function peripheralChanges()
+    {
+        return $this->hasMany(PeripheralChangeHistory::class);
+    }
 }

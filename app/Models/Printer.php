@@ -24,4 +24,9 @@ class Printer extends Model
     public function devices() {
         return $this->hasMany(Device::class);
     }
+
+    public function maintenances()
+    {
+        return $this->morphMany(Maintenance::class, 'maintainable');
+    }
 }
